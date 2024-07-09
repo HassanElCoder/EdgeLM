@@ -30,10 +30,43 @@ def cross_validate_linear_svm(train_feature,train_labels,param_name = "C", param
 
 def test_read_and_validate():
     X_train,y_train,X_test,y_test = readdata(data_path)
-    print(X_train.iloc[:10, :10].head())
-    print(y_train.iloc[:100,:])
     C_params = np.logspace(-6, 3, 10)
-    cross_validate_linear_svm(X_train.values,y_train.values.flatten(),param_name = "C",param_range = C_params, cv = 5, scoring = "accuracy", n_jobs = -1, random_state = 8)
+    train_scores,val_scores=cross_validate_linear_svm(X_train.values,y_train.values.flatten(),param_name = "C",param_range = C_params, cv = 5, scoring = "accuracy", n_jobs = -1, random_state = 8)
+    return train_scores,val_scores
 
 
-test_read_and_validate()
+def plot_accuracy(train_scores, val_scores, C_params):
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    val_scores_mean = np.mean(val_scores, axis=1)
+    val_scores_std = np.std(val_scores, axis=1)
+
+    # you can update these values based on the ploted scores for better view
+    y_min = 0.5
+    y_max = 1.0
+
+    f = plt.figure(figsize = (12, 8))
+    ax = plt.axes()
+    plt.title("SVM Training and Validation Accuracy")
+    plt.xlabel("C Value")
+    plt.ylabel("Accuracy")
+    plt.ylim(y_min, y_max)
+    plt.yticks(np.arange(y_min, y_max + .01, .05))
+    plt.semilogx(C_params, train_scores_mean, label = "Training Accuracy", color = "red")
+    plt.fill_between(C_params, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha = 0.2, color = "red")
+    plt.semilogx(C_params, val_scores_mean, label = "Validation Accuracy",
+                 color = "green")
+    plt.fill_between(C_params, val_scores_mean - val_scores_std,
+                     val_scores_mean + val_scores_std, alpha = 0.2, color = "green")
+    plt.legend(loc = "best")
+
+    plt.show()
+
+
+
+if __name__ == '__main__':
+   train_scores,val_scores=test_read_and_validate()
+   C_params = np.logspace(-6, 3, 10)
+   plot_accuracy(train_scores, val_scores, C_params)
+
